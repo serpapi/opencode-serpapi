@@ -1,0 +1,40 @@
+{
+  "name": "opencode-serpapi",
+  "version": "0.1.0",
+  "description": "OpenCode plugin for SerpApi — search Google, Bing, Amazon, Walmart, YouTube, Google Maps, Google Scholar, and 100+ other engines via a native search tool.",
+  "type": "module",
+  "main": "index.ts",
+  "license": "MIT",
+  "author": {
+    "name": "SerpApi"
+  },
+  "homepage": "https://serpapi.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/serpapi/serpapi-opencode-plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/serpapi/serpapi-opencode-plugin/issues"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "serpapi",
+    "search",
+    "google-search",
+    "web-search"
+  ],
+  "files": [
+    "index.ts",
+    "engines.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.18.32"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "typescript": "^5.6.0"
+  }
+}
