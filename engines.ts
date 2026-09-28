@@ -1,8 +1,4 @@
 /**
- * Engine -> query-parameter-name map, ported from SerpApi's own engine
- * selection table (the same table shipped in serpapi-claude-plugin's
- * skills/search/SKILL.md and serpapi-codex-plugin).
- *
  * SerpApi's ~100+ engines mostly share a common parameter surface
  * (location, gl, hl, device, num, start/page, json_restrictor, ...) but
  * each uses a different name for the "what am I searching for" field —

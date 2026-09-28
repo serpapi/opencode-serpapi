@@ -1,9 +1,12 @@
 {
   "name": "opencode-serpapi",
   "version": "0.1.0",
-  "description": "OpenCode plugin for SerpApi — search Google, Bing, Amazon, Walmart, YouTube, Google Maps, Google Scholar, and 100+ other engines via a native search tool.",
+  "description": "OpenCode plugin for SerpApi — secure MCP-first search across Google, Bing, Amazon, Walmart, YouTube, Google Maps, Google Scholar, and 100+ other engines.",
   "type": "module",
-  "main": "index.ts",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
   "license": "MIT",
   "author": {
     "name": "SerpApi"
@@ -27,9 +30,14 @@
   "files": [
     "index.ts",
     "engines.ts",
+    "skills",
     "README.md",
     "LICENSE"
   ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck"
+  },
   "dependencies": {
     "@opencode-ai/plugin": "^1.18.32"
   },

@@ -1,6 +1,6 @@
 # <img src="https://user-images.githubusercontent.com/307597/154772945-1b7dba5f-21cf-41d0-bb2e-65b6eff4aaaf.png" width="30" height="30"/> SerpApi Plugin for OpenCode
 
-An [OpenCode plugin](https://opencode.ai/docs/plugins) that gives your agent a native `search` tool covering Google, Amazon, Walmart, eBay, YouTube, Google Maps, Google Scholar, and [100+ other engines](https://serpapi.com/search-engine-apis) via the [SerpApi](https://serpapi.com) REST API.
+An [OpenCode plugin](https://opencode.ai/docs/plugins) that connects your agent to SerpApi's hosted MCP server for Google, Amazon, Walmart, eBay, YouTube, Google Maps, Google Scholar, and [100+ other engines](https://serpapi.com/search-engine-apis).
 
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -18,7 +18,8 @@ export SERPAPI_API_KEY="your_key_here"
 
 ### 2. Install the plugin
 
-Add it to your `opencode.json`:
+Add the npm package name to the `plugin` list in `opencode.json`. OpenCode
+automatically installs npm plugins at startup:
 
 ```json
 {
@@ -27,7 +28,8 @@ Add it to your `opencode.json`:
 }
 ```
 
-Restart OpenCode (or start a new session) — the `search` tool is registered automatically, no MCP block or slash command needed.
+After the package is published to npm, restart OpenCode (or start a new
+session). The plugin registers SerpApi as a remote MCP server automatically.
 
 ### 3. Use it
 
@@ -43,15 +45,17 @@ Ask in natural language and the agent picks the tool and engine on its own:
 
 ## How it works
 
-This is a **native OpenCode tool**, not a skill or an MCP wrapper: the plugin registers one `search` tool (per [opencode's Custom Tools API](https://opencode.ai/docs/plugins#custom-tools)) whose `execute` function calls SerpApi's REST API (`https://serpapi.com/search.json`) directly with `fetch`. The model never has to hand-build a `curl` command or remember which query-parameter name each engine expects — the plugin does that mapping in code (`engines.ts`), the same engine-selection table used by [`serpapi-claude-plugin`](https://github.com/serpapi/serpapi-claude-plugin) and [`serpapi-codex-plugin`](https://github.com/serpapi/serpapi-codex-plugin), ported to TypeScript.
+This is an **OpenCode MCP integration**. The plugin adds the hosted SerpApi MCP server at `https://mcp.serpapi.com/mcp` and configures bearer-header authentication from `SERPAPI_API_KEY`. It also registers a local OpenCode skill with engine-selection and search guidance, following the same separation used by the SerpApi Codex plugin. OpenCode exposes the MCP search tool to the model. The plugin does not call the SerpApi REST API directly and does not place the API key in a request URL.
 
 ## Features
 
-- **Single tool, all engines** — one `search` tool covers all 100+ SerpApi engines via an `engine` parameter. The agent picks the right one based on intent; you can also pass it explicitly.
-- **Automatic parameter mapping** — pass a plain `q`, and the plugin maps it to the correct field per engine (`q` for Google, `k` for Amazon, `query` for Walmart, `_nkw` for eBay, `find_desc` for Yelp, etc.). Unrecognized engines still work — the request passes straight through to SerpApi.
-- **Cost-aware default** — defaults to `google_light` (fast, cheaper) for plain web search; use `engine: "google"` when you need knowledge graph, ads, or other advanced SERP features. The tool description tells the model to confirm before issuing several calls for a comparison.
-- **Typed common parameters** — `location`, `gl`, `hl`, `device`, `num`, `page`/`start`, `no_cache`, and `json_restrictor` are all first-class arguments; anything engine-specific goes through a `params` passthrough object.
-- **Lean responses** — strips SerpApi's `search_metadata` bookkeeping block (request ids, timings) before returning results, since it's pure noise for the model and otherwise eats context on every call.
+- **MCP-native search** — OpenCode receives the `search` tool from the `serpapi` MCP server.
+- **All SerpApi engines** — the MCP server supports Google, Bing, Amazon, Walmart, eBay, YouTube, Google Maps, Google Scholar, and other engines.
+- **Secure header authentication** — the key is expanded from `SERPAPI_KEY` into an `Authorization` header; it is not embedded in the MCP URL or source code.
+- **Structured results** — the MCP server supports JSON, compact responses, Markdown output, and engine-specific parameter validation.
+- **Local search guidance** — the bundled skill helps the model choose engines and use engine-specific parameters without owning credentials or making API requests.
+- **Fallback routes** — when MCP is unavailable, the skill guides the agent to use the official SerpApi CLI, then HTTPS cURL as a last resort.
+- **CLI/REST search tool** — `serpapi_search` tries the official CLI and then cURL when the MCP server is unavailable.
 
 ## Supported Engines
 
@@ -69,14 +73,25 @@ This is a **native OpenCode tool**, not a skill or an MCP wrapper: the plugin re
 | Finance | Google Finance |
 | Apps | Google Play, Apple App Store |
 
-See the full, current list at [serpapi.com/search-engine-apis](https://serpapi.com/search-engine-apis). Any engine id works even if it isn't in `engines.ts` — the tool falls back to `q` and passes the request through.
+See the full, current list at [serpapi.com/search-engine-apis](https://serpapi.com/search-engine-apis). Detailed engine, MCP, CLI, cURL, credential, and response guidance is bundled under `skills/serpapi-web-search/references/`.
 
 ## Troubleshooting
 
-- **"SERPAPI_API_KEY is not set"** — export the key in your shell, or set it wherever OpenCode inherits its environment from.
+- **"Missing API key"** — export `SERPAPI_KEY` before starting OpenCode, or configure it in the environment used to launch OpenCode.
 - **"Invalid API key"** — verify at [serpapi.com/manage-api-key](https://serpapi.com/manage-api-key).
 - **Rate limit exceeded** — wait, or [upgrade your plan](https://serpapi.com/pricing).
-- **Tool not showing up** — confirm `opencode-serpapi` is listed under `plugin` in `opencode.json` and restart OpenCode; check `opencode.json` is valid JSON.
+- **Tool not showing up** — confirm `opencode-serpapi` is listed under `plugin` in `opencode.json`, confirm `SERPAPI_KEY` is available to OpenCode, and restart OpenCode.
+
+If MCP is unavailable, install and authenticate the official CLI:
+
+```bash
+brew tap serpapi/homebrew-tap
+brew install serpapi-cli
+serpapi login
+```
+
+The CLI fallback prefers `SERPAPI_KEY` or its secure config file. Do not pass the
+key with `--api-key`, because command-line arguments can be visible in process listings.
 
 ## Development
 
@@ -85,7 +100,7 @@ npm install
 npx tsc --noEmit   # type-check
 ```
 
-`engines.ts` mirrors the engine → query-parameter table maintained in [`serpapi-claude-plugin`](https://github.com/serpapi/serpapi-claude-plugin/blob/main/skills/search/SKILL.md). Update it there first if SerpApi adds or renames engines, then port the change here.
+The plugin configures the `serpapi` MCP server, whose primary tool is `search`, and also exposes `serpapi_search` as a native CLI/cURL route. The bundled skill provides routing and operational guidance; the reference files contain detailed engine and route documentation. `engines.ts` supplies query-field mapping for native requests.
 
 ## Related
 
