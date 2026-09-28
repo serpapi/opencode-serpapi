@@ -13,7 +13,7 @@ Sign up at [serpapi.com](https://serpapi.com/users/sign_up?plan=free) and set th
 > **Free tier** – 250 searches/month, no credit card required.
 
 ```bash
-export SERPAPI_API_KEY="your_key_here"
+export SERPAPI_API_KEY="your_serpapi_key"
 ```
 
 ### 2. Install the plugin
@@ -45,13 +45,13 @@ Ask in natural language and the agent picks the tool and engine on its own:
 
 ## How it works
 
-This is an **OpenCode MCP integration**. The plugin adds the hosted SerpApi MCP server at `https://mcp.serpapi.com/mcp` and configures bearer-header authentication from `SERPAPI_API_KEY`. It also registers a local OpenCode skill with engine-selection and search guidance, following the same separation used by the SerpApi Codex plugin. OpenCode exposes the MCP search tool to the model. The plugin does not call the SerpApi REST API directly and does not place the API key in a request URL.
+This is an **OpenCode MCP integration**. The plugin adds the hosted SerpApi MCP server at `https://mcp.serpapi.com/mcp` and configures bearer-header authentication from `SERPAPI_API_KEY`. It also registers a local OpenCode skill with engine-selection and search guidance, following the same separation used by the SerpApi Codex plugin. OpenCode exposes the MCP search tool to the model. If MCP is unavailable, the plugin's native `serpapi_search` tool tries the official CLI and then HTTPS cURL; the REST fallback sends the key as a query parameter.
 
 ## Features
 
 - **MCP-native search** — OpenCode receives the `search` tool from the `serpapi` MCP server.
 - **All SerpApi engines** — the MCP server supports Google, Bing, Amazon, Walmart, eBay, YouTube, Google Maps, Google Scholar, and other engines.
-- **Secure header authentication** — the key is expanded from `SERPAPI_KEY` into an `Authorization` header; it is not embedded in the MCP URL or source code.
+- **MCP header authentication** — the key is read from `SERPAPI_API_KEY` and sent in the MCP `Authorization` header, not embedded in the MCP URL or source code.
 - **Structured results** — the MCP server supports JSON, compact responses, Markdown output, and engine-specific parameter validation.
 - **Local search guidance** — the bundled skill helps the model choose engines and use engine-specific parameters without owning credentials or making API requests.
 - **Fallback routes** — when MCP is unavailable, the skill guides the agent to use the official SerpApi CLI, then HTTPS cURL as a last resort.
@@ -77,10 +77,7 @@ See the full, current list at [serpapi.com/search-engine-apis](https://serpapi.c
 
 ## Troubleshooting
 
-- **"Missing API key"** — export `SERPAPI_KEY` before starting OpenCode, or configure it in the environment used to launch OpenCode.
-- **"Invalid API key"** — verify at [serpapi.com/manage-api-key](https://serpapi.com/manage-api-key).
-- **Rate limit exceeded** — wait, or [upgrade your plan](https://serpapi.com/pricing).
-- **Tool not showing up** — confirm `opencode-serpapi` is listed under `plugin` in `opencode.json`, confirm `SERPAPI_KEY` is available to OpenCode, and restart OpenCode.
+- **"Tool not showing up"** — confirm `opencode-serpapi` is listed under `plugin` in `opencode.json`, confirm `SERPAPI_API_KEY` is available to OpenCode, and restart OpenCode.
 
 If MCP is unavailable, install and authenticate the official CLI:
 
@@ -90,8 +87,9 @@ brew install serpapi-cli
 serpapi login
 ```
 
-The CLI fallback prefers `SERPAPI_KEY` or its secure config file. Do not pass the
-key with `--api-key`, because command-line arguments can be visible in process listings.
+For direct CLI use, authenticate with `serpapi login` or its secure configuration.
+The plugin passes `SERPAPI_API_KEY` to its CLI fallback. Do not pass the key with
+`--api-key`, because command-line arguments can be visible in process listings.
 
 ## Development
 

@@ -14,9 +14,8 @@ serpapi login
 serpapi account
 ```
 
-The CLI checks `--api-key`, `SERPAPI_KEY`, and its config file, but do not use
-`--api-key` because process listings may expose it. Prefer `SERPAPI_KEY` or the
-interactive login/configuration flow.
+For direct CLI use, authenticate with `serpapi login` or its secure configuration.
+Do not use `--api-key` because process listings may expose it.
 
 Examples:
 

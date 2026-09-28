@@ -10,7 +10,7 @@ curl --fail-with-body --silent --show-error \
   --get "https://serpapi.com/search.json" \
   --data-urlencode "engine=google_light" \
   --data-urlencode "q=coffee" \
-  --data-urlencode "api_key=${SERPAPI_KEY}"
+  --data-urlencode "api_key=${SERPAPI_API_KEY}"
 ```
 
 Never print the resolved command or URL. Never commit it. Do not put a literal

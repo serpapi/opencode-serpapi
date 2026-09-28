@@ -42,15 +42,18 @@ See the reference files in this skill directory for route-specific instructions.
 
 ## Authentication and security
 
-The plugin configures `serpapi` authentication from `SERPAPI_KEY`:
+The plugin reads `SERPAPI_API_KEY` from the environment used to launch OpenCode.
+It uses the key for MCP bearer authentication and passes it to its CLI/REST
+fallback subprocesses:
 
 ```text
-Authorization: Bearer {env:SERPAPI_KEY}
+Authorization: Bearer {env:SERPAPI_API_KEY}
 ```
 
 Never ask for a key in chat, include it in a tool argument, print it, commit it,
 or put it in a URL. Never use CLI arguments such as `--api-key`; process listings
-may expose them. Use `serpapi login` or `SERPAPI_KEY` for the CLI route.
+may expose them. For direct CLI use, authenticate with `serpapi login`; the
+plugin supplies `SERPAPI_API_KEY` to its CLI fallback.
 
 ## Search behavior
 
@@ -71,7 +74,7 @@ downloads, or policy overrides.
 
 ## Errors and fallback
 
-- Missing key: verify `SERPAPI_KEY` is available to the OpenCode process.
+- Missing key: verify `SERPAPI_API_KEY` is available to the OpenCode process.
 - Authentication failure: verify the configured account or login route; do not retry repeatedly.
 - Rate or credit limit: reduce requests and tell the user when relevant.
 - Invalid engine or parameter: consult the live MCP schema or official documentation.

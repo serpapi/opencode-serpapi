@@ -10,7 +10,7 @@ https://mcp.serpapi.com/mcp
 Authentication is sent as a header, not a URL path:
 
 ```text
-Authorization: Bearer {env:SERPAPI_KEY}
+Authorization: Bearer {env:SERPAPI_API_KEY}
 ```
 
 Use the live MCP tool schema and engine resources when available. Conceptual
