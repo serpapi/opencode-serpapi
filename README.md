@@ -45,7 +45,7 @@ Ask in natural language and the agent picks the tool and engine on its own:
 
 ## How it works
 
-This is an **OpenCode MCP integration**. The plugin adds the hosted SerpApi MCP server at `https://mcp.serpapi.com/mcp` and configures bearer-header authentication from `SERPAPI_API_KEY`. It also registers a local OpenCode skill with engine-selection and search guidance, following the same separation used by the SerpApi Codex plugin. OpenCode exposes the MCP search tool to the model. If MCP is unavailable, the plugin's native `serpapi_search` tool tries the official CLI and then HTTPS cURL; the REST fallback sends the key as a query parameter.
+This is an **OpenCode MCP integration**. The plugin adds the hosted SerpApi MCP server at `https://mcp.serpapi.com/mcp` and configures bearer-header authentication from `SERPAPI_API_KEY`. It also registers a local OpenCode skill with engine-selection and search guidance. OpenCode exposes the MCP search tool to the model. If MCP is unavailable, the plugin's native `serpapi_search` tool tries the official CLI and then HTTPS cURL; the REST fallback sends the key as a query parameter.
 
 ## Features
 
@@ -102,8 +102,6 @@ The plugin configures the `serpapi` MCP server, whose primary tool is `search`, 
 
 ## Related
 
-- [SerpApi Claude Code Plugin](https://github.com/serpapi/serpapi-claude-plugin)
-- [SerpApi Codex Plugin](https://github.com/serpapi/serpapi-codex-plugin)
 - [SerpApi MCP Server](https://github.com/serpapi/serpapi-mcp) — for Claude Desktop, VS Code, and Cursor
 - [SerpApi Docs](https://serpapi.com/search-api) — full API reference
 - [SerpApi Playground](https://serpapi.com/playground) — interactive API explorer
