@@ -1,6 +1,6 @@
 {
   "name": "opencode-serpapi",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "OpenCode plugin for SerpApi — secure MCP-first search across Google, Bing, Amazon, Walmart, YouTube, Google Maps, Google Scholar, and 100+ other engines.",
   "type": "module",
   "main": "./index.ts",
