@@ -68,8 +68,6 @@ An existing user-defined `mcp.serpapi` configuration is preserved.
 - **Local search guidance** — the bundled skill helps the model choose engines and use engine-specific parameters without owning credentials or making API requests.
 - **Portable fallback** — `serpapi_search` uses the runtime's built-in `fetch`, with no CLI, shell, or cURL dependency.
 - **Engine-aware queries** — the native tool maps its generic `q` argument to engine-specific fields such as Amazon's `k`, Walmart's `query`, eBay's `_nkw`, and YouTube's `search_query`.
-- **Credential protection** — caller-supplied `api_key` parameters are discarded, errors redact the configured key, and MCP credentials stay out of the URL.
-- **Cancellation support** — native requests use OpenCode's abort signal so cancelled tool calls stop their HTTP request.
 
 ## Supported Engines
 
