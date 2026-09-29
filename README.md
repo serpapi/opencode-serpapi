@@ -24,7 +24,7 @@ automatically installs npm plugins at startup:
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-serpapi"]
+  "plugin": ["serpapi-opencode"]
 }
 ```
 
