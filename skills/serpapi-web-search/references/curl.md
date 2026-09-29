@@ -1,9 +1,11 @@
-# SerpApi REST and cURL fallback
+# SerpApi REST fallback and manual cURL
 
-Use REST cURL only when MCP and the official CLI are unavailable. The SerpApi
-search endpoint uses `api_key` authentication in the query string, unlike the
-MCP endpoint's bearer header. This makes cURL a lower-security fallback because
-URLs may appear in proxy, shell, or request logs.
+The plugin's `serpapi_search` tool calls the SerpApi REST endpoint directly with
+the runtime's built-in `fetch`; it does not require a shell or cURL. The REST
+endpoint uses `api_key` authentication in the query string, unlike the MCP
+endpoint's bearer header, so prefer MCP when available.
+
+For manual troubleshooting outside the plugin:
 
 ```bash
 curl --fail-with-body --silent --show-error \

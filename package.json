@@ -1,6 +1,6 @@
 {
-  "name": "opencode-serpapi",
-  "version": "0.1.0",
+  "name": "serpapi-opencode",
+  "version": "0.1.1",
   "description": "OpenCode plugin for SerpApi — secure MCP-first search across Google, Bing, Amazon, Walmart, YouTube, Google Maps, Google Scholar, and 100+ other engines.",
   "type": "module",
   "main": "./index.ts",
@@ -35,14 +35,16 @@
     "LICENSE"
   ],
   "scripts": {
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run typecheck"
+    "prepublishOnly": "npm test && npm run typecheck"
   },
   "dependencies": {
     "@opencode-ai/plugin": "^1.18.32"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^5.0.2"
   }
 }

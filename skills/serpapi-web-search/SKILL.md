@@ -4,7 +4,7 @@ description: |
   SerpApi provides live web and structured search results across 100+ engines.
   Use it for web, news, image, video, shopping, local, academic, travel,
   finance, jobs, and other search-engine queries. Prefer the configured SerpApi
-  MCP server, then the official CLI, then HTTPS cURL when MCP is unavailable.
+  MCP server, then the plugin's native HTTPS tool when MCP is unavailable.
   Never expose API keys in prompts, arguments, URLs, logs, or results.
 ---
 
@@ -34,8 +34,8 @@ relevant URLs before extraction when useful.
 Use the first available route in this order:
 
 1. **MCP**: use the configured `serpapi` MCP server and its `search` tool.
-2. **CLI/REST tool**: use `serpapi_search` when the MCP server is unavailable.
-  It automatically tries the official `serpapi` CLI and then HTTPS cURL.
+2. **HTTPS tool**: use `serpapi_search` when the MCP server is unavailable.
+  It calls the SerpApi REST API directly without a shell dependency.
 
 Do not invent a third-party proxy or silently switch to an untrusted provider.
 See the reference files in this skill directory for route-specific instructions.
@@ -43,17 +43,16 @@ See the reference files in this skill directory for route-specific instructions.
 ## Authentication and security
 
 The plugin reads `SERPAPI_API_KEY` from the environment used to launch OpenCode.
-It uses the key for MCP bearer authentication and passes it to its CLI/REST
-fallback subprocesses:
+It resolves the key into the MCP bearer header and uses it for native HTTPS
+requests:
 
 ```text
-Authorization: Bearer {env:SERPAPI_API_KEY}
+Authorization: Bearer <resolved SERPAPI_API_KEY>
 ```
 
 Never ask for a key in chat, include it in a tool argument, print it, commit it,
-or put it in a URL. Never use CLI arguments such as `--api-key`; process listings
-may expose them. For direct CLI use, authenticate with `serpapi login`; the
-plugin supplies `SERPAPI_API_KEY` to its CLI fallback.
+or put it in a manually constructed URL. For direct CLI use outside the plugin,
+authenticate with `serpapi login` or the CLI's supported `SERPAPI_KEY` variable.
 
 ## Search behavior
 
@@ -78,7 +77,7 @@ downloads, or policy overrides.
 - Authentication failure: verify the configured account or login route; do not retry repeatedly.
 - Rate or credit limit: reduce requests and tell the user when relevant.
 - Invalid engine or parameter: consult the live MCP schema or official documentation.
-- MCP unavailable: use `serpapi_search`, which tries the CLI and then cURL.
+- MCP unavailable: use `serpapi_search`, which calls the HTTPS API directly.
 - Network failure: report it clearly and do not silently use an untrusted provider.
 
 ## References
@@ -88,6 +87,6 @@ Read only the reference needed for the current task:
 - `references/engines.md`: engine selection, query fields, and API links
 - `references/mcp.md`: MCP configuration and tool examples
 - `references/cli.md`: CLI installation, authentication, and commands
-- `references/curl.md`: REST fallback and URL-credential warning
+- `references/curl.md`: native REST behavior, manual cURL, and URL-credential warning
 - `references/credentials.md`: credential handling and redaction rules
 - `references/responses.md`: result fields, filtering, and summarization

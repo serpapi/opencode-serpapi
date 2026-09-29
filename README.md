@@ -28,6 +28,9 @@ automatically installs npm plugins at startup:
 }
 ```
 
+Restart OpenCode (or start a new session). OpenCode downloads the published
+package and the plugin registers SerpApi as a remote MCP server automatically.
+
 ### 3. Use it
 
 Ask in natural language and the agent picks the tool and engine on its own:
@@ -42,7 +45,19 @@ Ask in natural language and the agent picks the tool and engine on its own:
 
 ## How it works
 
-This is an **OpenCode MCP integration**. The plugin adds the hosted SerpApi MCP server at `https://mcp.serpapi.com/mcp` and configures bearer-header authentication from `SERPAPI_API_KEY`. It also registers a local OpenCode skill with engine-selection and search guidance. OpenCode exposes the MCP search tool to the model. If MCP is unavailable, the plugin's native `serpapi_search` tool tries the official CLI and then HTTPS cURL; the REST fallback sends the key as a query parameter.
+This is an **OpenCode MCP integration with a native HTTPS fallback**. The plugin:
+
+1. Registers the hosted SerpApi MCP server at `https://mcp.serpapi.com/mcp`.
+2. Reads `SERPAPI_API_KEY` from the OpenCode process and resolves it into the
+  MCP `Authorization: Bearer ...` header.
+3. Exposes a native `serpapi_search` tool that calls
+  `https://serpapi.com/search.json` with the runtime's built-in `fetch`.
+4. Registers the bundled `serpapi-web-search` skill for engine selection,
+  routing, credential safety, and response guidance.
+
+The MCP server is the preferred route. When its tools are unavailable or the
+server is disabled, the native tool remains available as the direct HTTPS route.
+An existing user-defined `mcp.serpapi` configuration is preserved.
 
 ## Features
 
@@ -51,8 +66,10 @@ This is an **OpenCode MCP integration**. The plugin adds the hosted SerpApi MCP 
 - **MCP header authentication** — the key is read from `SERPAPI_API_KEY` and sent in the MCP `Authorization` header, not embedded in the MCP URL or source code.
 - **Structured results** — the MCP server supports JSON, compact responses, Markdown output, and engine-specific parameter validation.
 - **Local search guidance** — the bundled skill helps the model choose engines and use engine-specific parameters without owning credentials or making API requests.
-- **Fallback routes** — when MCP is unavailable, the skill guides the agent to use the official SerpApi CLI, then HTTPS cURL as a last resort.
-- **CLI/REST search tool** — `serpapi_search` tries the official CLI and then cURL when the MCP server is unavailable.
+- **Portable fallback** — `serpapi_search` uses the runtime's built-in `fetch`, with no CLI, shell, or cURL dependency.
+- **Engine-aware queries** — the native tool maps its generic `q` argument to engine-specific fields such as Amazon's `k`, Walmart's `query`, eBay's `_nkw`, and YouTube's `search_query`.
+- **Credential protection** — caller-supplied `api_key` parameters are discarded, errors redact the configured key, and MCP credentials stay out of the URL.
+- **Cancellation support** — native requests use OpenCode's abort signal so cancelled tool calls stop their HTTP request.
 
 ## Supported Engines
 
@@ -70,32 +87,33 @@ This is an **OpenCode MCP integration**. The plugin adds the hosted SerpApi MCP 
 | Finance | Google Finance |
 | Apps | Google Play, Apple App Store |
 
-See the full, current list at [serpapi.com/search-engine-apis](https://serpapi.com/search-engine-apis). Detailed engine, MCP, CLI, cURL, credential, and response guidance is bundled under `skills/serpapi-web-search/references/`.
+Engines not listed in the plugin's query-field map still pass through with `q`.
+See the full, current list at [serpapi.com/search-engine-apis](https://serpapi.com/search-engine-apis). Detailed engine, MCP, CLI, REST, credential, and response guidance is bundled under `skills/serpapi-web-search/references/`.
 
 ## Troubleshooting
 
 - **"Tool not showing up"** — confirm `serpapi-opencode` is listed under `plugin` in `opencode.json`, confirm `SERPAPI_API_KEY` is available to OpenCode, and restart OpenCode.
+- **"Invalid API key"** — replace `SERPAPI_API_KEY` with the current key from the [SerpApi dashboard](https://serpapi.com/manage-api-key), then restart OpenCode so the MCP header is rebuilt.
+- **MCP connection problems** — run `opencode mcp list`; the `serpapi` entry should report `connected`.
+- **Native request failure** — the tool returns `SerpApi search failed: ...` with the configured key redacted.
 
-If MCP is unavailable, install and authenticate the official CLI:
-
-```bash
-brew tap serpapi/homebrew-tap
-brew install serpapi-cli
-serpapi login
-```
-
-For direct CLI use, authenticate with `serpapi login` or its secure configuration.
-The plugin passes `SERPAPI_API_KEY` to its CLI fallback. Do not pass the key with
-`--api-key`, because command-line arguments can be visible in process listings.
+If MCP is unavailable, ask the agent to use `serpapi_search`. Confirm that
+`SERPAPI_API_KEY` is available to the OpenCode process.
 
 ## Development
 
 ```bash
 npm install
-npx tsc --noEmit   # type-check
+npm test
+npm run typecheck
 ```
 
-The plugin configures the `serpapi` MCP server, whose primary tool is `search`, and also exposes `serpapi_search` as a native CLI/cURL route. The bundled skill provides routing and operational guidance; the reference files contain detailed engine and route documentation. `engines.ts` supplies query-field mapping for native requests.
+The test suite mocks `fetch` and covers request parameter mapping, trusted-key
+enforcement, HTTP failures, missing credentials, and resolved MCP header
+configuration. The plugin configures the `serpapi` MCP server, whose primary
+tool is `search`, and also exposes `serpapi_search` as a native HTTPS route.
+The bundled skill provides routing and operational guidance; `engines.ts`
+supplies query-field mapping for native requests.
 
 ## Related
 
