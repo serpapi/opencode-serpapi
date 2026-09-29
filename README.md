@@ -76,7 +76,7 @@ See the full, current list at [serpapi.com/search-engine-apis](https://serpapi.c
 
 ## Troubleshooting
 
-- **"Tool not showing up"** — confirm `opencode-serpapi` is listed under `plugin` in `opencode.json`, confirm `SERPAPI_API_KEY` is available to OpenCode, and restart OpenCode.
+- **"Tool not showing up"** — confirm `serpapi-opencode` is listed under `plugin` in `opencode.json`, confirm `SERPAPI_API_KEY` is available to OpenCode, and restart OpenCode.
 
 If MCP is unavailable, ask the agent to use `serpapi_search`. Confirm that
 `SERPAPI_API_KEY` is available to the OpenCode process.
