@@ -28,9 +28,6 @@ automatically installs npm plugins at startup:
 }
 ```
 
-After the package is published to npm, restart OpenCode (or start a new
-session). The plugin registers SerpApi as a remote MCP server automatically.
-
 ### 3. Use it
 
 Ask in natural language and the agent picks the tool and engine on its own:
