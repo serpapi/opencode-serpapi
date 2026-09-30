@@ -1,5 +1,5 @@
 {
-  "name": "serpapi-opencode",
+  "name": "opencode-serpapi",
   "version": "0.1.1",
   "description": "OpenCode plugin for SerpApi — secure MCP-first search across Google, Bing, Amazon, Walmart, YouTube, Google Maps, Google Scholar, and 100+ other engines.",
   "type": "module",
@@ -14,10 +14,10 @@
   "homepage": "https://serpapi.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/serpapi/serpapi-opencode-plugin"
+    "url": "https://github.com/serpapi/opencode-serpapi"
   },
   "bugs": {
-    "url": "https://github.com/serpapi/serpapi-opencode-plugin/issues"
+    "url": "https://github.com/serpapi/opencode-serpapi/issues"
   },
   "keywords": [
     "opencode",
