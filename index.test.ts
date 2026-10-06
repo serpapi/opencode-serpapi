@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { SerpApiPlugin } from "./index"
+import DefaultPlugin, { SerpApiPlugin, SerpApiV2Plugin } from "./index"
+import type { Context as V2Context } from "@opencode/plugin/promise/plugin"
 
 const originalApiKey = process.env.SERPAPI_API_KEY
 
@@ -63,6 +64,14 @@ describe("serpapi_search", () => {
   })
 })
 
+describe("dual-version entrypoint", () => {
+  it("keeps the V1 server implementation on the default export", async () => {
+    expect(typeof DefaultPlugin.server).toBe("function")
+    const hooks = await DefaultPlugin.server({} as never)
+    expect(hooks.tool?.serpapi_search).toBeDefined()
+  })
+})
+
 describe("MCP configuration", () => {
   it("resolves the API key into the authorization header", async () => {
     process.env.SERPAPI_API_KEY = "test-key"
@@ -81,5 +90,47 @@ describe("MCP configuration", () => {
         },
       },
     })
+  })
+})
+
+describe("OpenCode V2 adapter", () => {
+  it("registers the native search tool, remote MCP server, and bundled skill", async () => {
+    const tools: Array<{ name: string; execute: (input: unknown, context: { signal: AbortSignal }) => Promise<{ content: string }> }> = []
+    const servers: Record<string, unknown> = {}
+    const skills: Array<{ id: string; name: string; description?: string; content: string }> = []
+    const context = {
+      mcp: {
+        transform: async (transform: (editor: { get: (name: string) => unknown; set: (name: string, config: unknown) => void }) => void) =>
+          transform({
+            get: (name) => servers[name],
+            set: (name, config) => { servers[name] = config },
+          }),
+      },
+      tool: {
+        transform: async (transform: (editor: { add: (definition: typeof tools[number]) => void }) => void) =>
+          transform({ add: (definition) => tools.push(definition) }),
+      },
+      skill: {
+        transform: async (transform: (editor: { add: (skill: typeof skills[number]) => void }) => void) =>
+          transform({ add: (skill) => skills.push(skill) }),
+      },
+    } as unknown as V2Context
+
+    process.env.SERPAPI_API_KEY = "v2-test-key"
+    const fetchMock = vi.fn(async () => new Response('{"ok":true}', { status: 200 }))
+    vi.stubGlobal("fetch", fetchMock)
+
+    await SerpApiV2Plugin.setup(context)
+
+    expect(tools.map(({ name }) => name)).toContain("serpapi_search")
+    expect(servers.serpapi).toMatchObject({ type: "remote", url: "https://mcp.serpapi.com/mcp", oauth: false })
+    expect(skills).toHaveLength(1)
+    expect(skills[0].name).toBe("serpapi-web-search")
+    expect(skills[0].description).toContain("SerpApi provides live web and structured search results")
+    expect(skills[0].content).toMatch(/^# SerpApi web search/)
+    expect(skills[0].content).not.toContain("description: |")
+    await expect(tools[0].execute({ engine: "amazon", q: "headphones" }, { signal: new AbortController().signal }))
+      .resolves.toEqual({ content: '{"ok":true}' })
+    expect(fetchMock).toHaveBeenCalledOnce()
   })
 })
