@@ -123,7 +123,12 @@ describe("OpenCode V2 adapter", () => {
     await SerpApiV2Plugin.setup(context)
 
     expect(tools.map(({ name }) => name)).toContain("serpapi_search")
-    expect(servers.serpapi).toMatchObject({ type: "remote", url: "https://mcp.serpapi.com/mcp", oauth: false })
+    expect(servers.serpapi).toMatchObject({
+      type: "remote",
+      url: "https://mcp.serpapi.com/mcp",
+      oauth: false,
+      headers: { Authorization: "Bearer v2-test-key" },
+    })
     expect(skills).toHaveLength(1)
     expect(skills[0].name).toBe("serpapi-web-search")
     expect(skills[0].description).toContain("SerpApi provides live web and structured search results")
