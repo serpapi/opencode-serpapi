@@ -37,6 +37,11 @@ Use the first available route in this order:
 2. **HTTPS tool**: use `serpapi_search` when the MCP server is unavailable.
   It calls the SerpApi REST API directly without a shell dependency.
 
+If an MCP search fails validation because `params` arrived as a string instead
+of an object/dictionary, do not retry the same MCP call. Treat it as a host
+serialization incompatibility and use `serpapi_search` with `engine`, `q`, and
+`params` directly.
+
 Do not invent a third-party proxy or silently switch to an untrusted provider.
 See the reference files in this skill directory for route-specific instructions.
 
