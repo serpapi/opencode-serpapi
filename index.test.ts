@@ -72,24 +72,16 @@ describe("dual-version entrypoint", () => {
   })
 })
 
-describe("MCP configuration", () => {
-  it("resolves the API key into the authorization header", async () => {
+describe("V1 configuration", () => {
+  it("does not auto-register MCP and still registers the bundled skill path", async () => {
     process.env.SERPAPI_API_KEY = "test-key"
     const hooks = await pluginHooks()
     const config = {}
 
     await hooks.config?.(config)
 
-    expect(config).toMatchObject({
-      mcp: {
-        serpapi: {
-          type: "remote",
-          url: "https://mcp.serpapi.com/mcp",
-          oauth: false,
-          headers: { Authorization: "Bearer test-key" },
-        },
-      },
-    })
+    expect(config).not.toHaveProperty("mcp")
+    expect(config).toMatchObject({ skills: { paths: [expect.any(String)] } })
   })
 })
 

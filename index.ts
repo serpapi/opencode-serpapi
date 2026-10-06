@@ -94,15 +94,6 @@ export const SerpApiPlugin: Plugin = async () => {
       }),
     },
     async config(input) {
-      input.mcp ??= {}
-      const apiKey = process.env.SERPAPI_API_KEY
-      input.mcp.serpapi ??= {
-        type: "remote",
-        url: SERPAPI_MCP_URL,
-        oauth: false,
-        ...(apiKey ? { headers: { Authorization: `Bearer ${apiKey}` } } : {}),
-      }
-
       // OpenCode's published Plugin type may lag its runtime skill support.
       // @ts-expect-error skills is supported at runtime but may be absent from older types
       input.skills ??= {}
