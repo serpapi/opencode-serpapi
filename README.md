@@ -18,8 +18,23 @@ export SERPAPI_API_KEY="your_serpapi_key"
 
 ### 2. Install the plugin
 
-Add the npm package name to the `plugin` list in `opencode.json`. OpenCode
-automatically installs npm plugins at startup:
+Use the configuration key for your OpenCode version. OpenCode automatically
+installs npm plugins at startup.
+
+#### OpenCode 2
+
+Add the package to `plugins` in `opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": ["opencode-serpapi"]
+}
+```
+
+#### OpenCode 1.18.29 and later
+
+Add the package to `plugin` in `opencode.json`:
 
 ```json
 {
@@ -28,8 +43,8 @@ automatically installs npm plugins at startup:
 }
 ```
 
-Restart OpenCode (or start a new session). OpenCode downloads the published
-package and the plugin registers SerpApi as a remote MCP server automatically.
+Restart OpenCode (or start a new session). The package supports both plugin
+interfaces from one entrypoint: V1 uses `server()`, while V2 uses `setup()`.
 
 ### 3. Use it
 
@@ -90,7 +105,7 @@ See the full, current list at [serpapi.com/search-engine-apis](https://serpapi.c
 
 ## Troubleshooting
 
-- **"Tool not showing up"** — confirm `opencode-serpapi` is listed under `plugin` in `opencode.json`, confirm `SERPAPI_API_KEY` is available to OpenCode, and restart OpenCode.
+- **"Tool not showing up"** — confirm `opencode-serpapi` is listed under `plugins` on OpenCode 2 or `plugin` on OpenCode 1, confirm `SERPAPI_API_KEY` is available to OpenCode, and restart OpenCode.
 - **"Invalid API key"** — replace `SERPAPI_API_KEY` with the current key from the [SerpApi dashboard](https://serpapi.com/manage-api-key), then restart OpenCode so the MCP header is rebuilt.
 - **MCP connection problems** — run `opencode mcp list`; the `serpapi` entry should report `connected`.
 - **Native request failure** — the tool returns `SerpApi search failed: ...` with the configured key redacted.
