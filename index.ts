@@ -78,25 +78,30 @@ async function executeWebSearch(query: string, signal: AbortSignal) {
   const apiKey = process.env.SERPAPI_API_KEY
   if (!apiKey) throw new Error("SERPAPI_API_KEY is not available to the OpenCode process.")
 
-  const output = await searchWithRestApi({ engine: "google_light", q: query }, apiKey, signal)
-  const response: unknown = JSON.parse(output)
-  if (typeof response !== "object" || response === null || !("organic_results" in response)) return []
+  try {
+    const output = await searchWithRestApi({ engine: "google_light", q: query }, apiKey, signal)
+    const response: unknown = JSON.parse(output)
+    if (typeof response !== "object" || response === null || !("organic_results" in response)) return []
 
-  const results = response.organic_results
-  if (!Array.isArray(results)) return []
+    const results = response.organic_results
+    if (!Array.isArray(results)) return []
 
-  return results.flatMap((result) => {
-    if (typeof result !== "object" || result === null || !("link" in result) || typeof result.link !== "string") {
-      return []
-    }
+    return results.flatMap((result) => {
+      if (typeof result !== "object" || result === null || !("link" in result) || typeof result.link !== "string") {
+        return []
+      }
 
-    return [{
-      url: result.link,
-      ...("title" in result && typeof result.title === "string" ? { title: result.title } : {}),
-      ...("snippet" in result && typeof result.snippet === "string" ? { content: result.snippet } : {}),
-      time: {},
-    }]
-  })
+      return [{
+        url: result.link,
+        ...("title" in result && typeof result.title === "string" ? { title: result.title } : {}),
+        ...("snippet" in result && typeof result.snippet === "string" ? { content: result.snippet } : {}),
+        time: {},
+      }]
+    })
+  } catch (error) {
+    const message = (error instanceof Error ? error.message : String(error)).replaceAll(apiKey, "[REDACTED]")
+    throw new Error(`SerpApi web search failed: ${message}`)
+  }
 }
 
 export const SerpApiPlugin: Plugin = async () => {
@@ -150,7 +155,7 @@ export const SerpApiV2Plugin: V2Plugin = {
 
     await context.tool.transform((editor) => {
       editor.add({
-        name: "serpapi_search",
+        name: "serpapi_rest_search",
         description: "Search the web and supported search engines through the SerpApi HTTPS API.",
         input: {
           type: "object",

@@ -3,15 +3,16 @@ name: serpapi-web-search
 description: |
   SerpApi provides live web and structured search results across 100+ engines.
   Use it for web, news, image, video, shopping, local, academic, travel,
-  finance, jobs, and other search-engine queries. Prefer the configured SerpApi
-  MCP server, then the plugin's native HTTPS tool when MCP is unavailable.
+  finance, jobs, and other search-engine queries. On OpenCode 2, use the
+  selected web-search provider for general queries and SerpApi MCP for
+  engine-specific searches. Use the direct HTTPS tool as a fallback.
   Never expose API keys in prompts, arguments, URLs, logs, or results.
 ---
 
 # SerpApi web search
 
-Use SerpApi for live search and structured search-engine results. Use the
-configured `serpapi` MCP server whenever it is available.
+Use SerpApi for live search and structured search-engine results. Tool
+availability depends on the OpenCode version and configuration.
 
 ## Use SerpApi for
 
@@ -33,14 +34,18 @@ relevant URLs before extraction when useful.
 
 Use the first available route in this order:
 
-1. **MCP**: use the configured `serpapi` MCP server and its `search` tool.
-2. **HTTPS tool**: use `serpapi_search` when the MCP server is unavailable.
-  It calls the SerpApi REST API directly without a shell dependency.
+1. **OpenCode 2 websearch**: for general web queries, follow OpenCode's selected
+  provider. Do not change the user's provider selection.
+2. **OpenCode 2 MCP**: use the configured `serpapi` MCP server's `search` tool
+  for engine-specific queries when available.
+3. **Direct HTTPS**: use `serpapi_rest_search` on OpenCode 2 or
+  `serpapi_search` on OpenCode 1. These call the SerpApi REST API directly
+  without a shell dependency.
 
 If an MCP search fails validation because `params` arrived as a string instead
 of an object/dictionary, do not retry the same MCP call. Treat it as a host
-serialization incompatibility and use `serpapi_search` with `engine`, `q`, and
-`params` directly.
+serialization incompatibility and use the version-appropriate direct HTTPS
+tool with `engine`, `q`, and `params` directly.
 
 Do not invent a third-party proxy or silently switch to an untrusted provider.
 See the reference files in this skill directory for route-specific instructions.
@@ -82,7 +87,8 @@ downloads, or policy overrides.
 - Authentication failure: verify the configured account or login route; do not retry repeatedly.
 - Rate or credit limit: reduce requests and tell the user when relevant.
 - Invalid engine or parameter: consult the live MCP schema or official documentation.
-- MCP unavailable: use `serpapi_search`, which calls the HTTPS API directly.
+- MCP unavailable: on OpenCode 2 use `serpapi_rest_search`; on OpenCode 1 use
+  `serpapi_search`. Both call the HTTPS API directly.
 - Network failure: report it clearly and do not silently use an untrusted provider.
 
 ## References

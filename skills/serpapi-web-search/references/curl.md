@@ -1,9 +1,10 @@
 # SerpApi REST fallback and manual cURL
 
-The plugin's `serpapi_search` tool calls the SerpApi REST endpoint directly with
-the runtime's built-in `fetch`; it does not require a shell or cURL. The REST
-endpoint uses `api_key` authentication in the query string, unlike the MCP
-endpoint's bearer header, so prefer MCP when available.
+The direct REST tool calls the SerpApi endpoint with the runtime's built-in
+`fetch`; it does not require a shell or cURL. Its name is `serpapi_search` on
+OpenCode 1 and `serpapi_rest_search` on OpenCode 2. The REST endpoint uses
+`api_key` authentication in the query string, unlike the OpenCode 2 MCP
+endpoint's bearer header.
 
 For manual troubleshooting outside the plugin:
 

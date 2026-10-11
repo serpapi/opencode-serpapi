@@ -139,7 +139,8 @@ describe("OpenCode V2 adapter", () => {
 
     await SerpApiV2Plugin.setup(context)
 
-    expect(tools.map(({ name }) => name)).toContain("serpapi_search")
+    expect(tools.map(({ name }) => name)).toContain("serpapi_rest_search")
+    expect(tools.map(({ name }) => name)).not.toContain("serpapi_search")
     expect(providers.map(({ id }) => id)).toContain("serpapi")
     expect(providers[0].name).toBe("SerpApi")
     expect(defaultProvider).toBeUndefined()
@@ -154,7 +155,10 @@ describe("OpenCode V2 adapter", () => {
     expect(skills[0].description).toContain("SerpApi provides live web and structured search results")
     expect(skills[0].content).toMatch(/^# SerpApi web search/)
     expect(skills[0].content).not.toContain("description: |")
-    await expect(tools[0].execute({ engine: "amazon", q: "headphones" }, { signal: new AbortController().signal }))
+    const restSearch = tools.find(({ name }) => name === "serpapi_rest_search")
+    if (!restSearch) throw new Error("serpapi_rest_search was not registered")
+
+    await expect(restSearch.execute({ engine: "amazon", q: "headphones" }, { signal: new AbortController().signal }))
       .resolves.toEqual({ content: searchResponse })
     await expect(providers[0].execute({ query: "headphones" }, { signal: new AbortController().signal }))
       .resolves.toEqual([{
@@ -164,5 +168,9 @@ describe("OpenCode V2 adapter", () => {
         time: {},
       }])
     expect(fetchMock).toHaveBeenCalledTimes(2)
+
+    fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch https://serpapi.com/search.json?api_key=v2-test-key"))
+    await expect(providers[0].execute({ query: "headphones" }, { signal: new AbortController().signal }))
+      .rejects.toThrow("SerpApi web search failed: Failed to fetch https://serpapi.com/search.json?api_key=[REDACTED]")
   })
 })

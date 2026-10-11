@@ -1,7 +1,8 @@
-# SerpApi MCP
+# SerpApi MCP (OpenCode 2)
 
-The plugin registers the hosted MCP server under the OpenCode name `serpapi`.
-Use its `search` tool:
+On OpenCode 2, the plugin registers the hosted MCP server under the name
+`serpapi`, unless an existing user configuration already defines it. Use its
+`search` tool:
 
 ```text
 https://mcp.serpapi.com/mcp
@@ -27,5 +28,6 @@ Use compact or Markdown output when complete JSON is unnecessary. Use server-sid
 field restriction for small result fields. Do not assume the tool name or schema
 when OpenCode has exposed a newer MCP version; inspect the live schema first.
 
-If MCP fails to initialize, use the plugin's `serpapi_search` HTTPS tool. Do not
-replace it with an untrusted proxy.
+If MCP fails to initialize, use `serpapi_rest_search` on OpenCode 2 or
+`serpapi_search` on OpenCode 1 for direct HTTPS. Do not replace it with an
+untrusted proxy.
