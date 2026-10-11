@@ -66,7 +66,7 @@ This is an **OpenCode MCP integration with native web-search and HTTPS routes**.
 2. Reads `SERPAPI_API_KEY` from the OpenCode process and resolves it into the
   MCP `Authorization: Bearer ...` header.
 3. For OpenCode 2, registers SerpApi as a native web-search provider using
-  Google Light and selects it only when no provider default is configured.
+  Google Light without changing OpenCode's provider selection.
 4. Exposes a native `serpapi_search` tool that calls
   `https://serpapi.com/search.json` with the runtime's built-in `fetch`.
 5. Registers the bundled `serpapi-web-search` skill for engine selection,

@@ -142,7 +142,7 @@ describe("OpenCode V2 adapter", () => {
     expect(tools.map(({ name }) => name)).toContain("serpapi_search")
     expect(providers.map(({ id }) => id)).toContain("serpapi")
     expect(providers[0].name).toBe("SerpApi")
-    expect(defaultProvider).toBe("serpapi")
+    expect(defaultProvider).toBeUndefined()
     expect(servers.serpapi).toMatchObject({
       type: "remote",
       url: "https://mcp.serpapi.com/mcp",

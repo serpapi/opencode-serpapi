@@ -181,7 +181,6 @@ export const SerpApiV2Plugin: V2Plugin = {
           return executeWebSearch(query, toolContext.signal)
         },
       })
-      if (editor.default.get() === undefined) editor.default.set("serpapi")
     })
 
     await context.skill.transform((editor) => {
