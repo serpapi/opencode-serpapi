@@ -74,6 +74,31 @@ async function searchWithRestApi(
   return output
 }
 
+async function executeWebSearch(query: string, signal: AbortSignal) {
+  const apiKey = process.env.SERPAPI_API_KEY
+  if (!apiKey) throw new Error("SERPAPI_API_KEY is not available to the OpenCode process.")
+
+  const output = await searchWithRestApi({ engine: "google_light", q: query }, apiKey, signal)
+  const response: unknown = JSON.parse(output)
+  if (typeof response !== "object" || response === null || !("organic_results" in response)) return []
+
+  const results = response.organic_results
+  if (!Array.isArray(results)) return []
+
+  return results.flatMap((result) => {
+    if (typeof result !== "object" || result === null || !("link" in result) || typeof result.link !== "string") {
+      return []
+    }
+
+    return [{
+      url: result.link,
+      ...("title" in result && typeof result.title === "string" ? { title: result.title } : {}),
+      ...("snippet" in result && typeof result.snippet === "string" ? { content: result.snippet } : {}),
+      time: {},
+    }]
+  })
+}
+
 export const SerpApiPlugin: Plugin = async () => {
   return {
     tool: {
@@ -146,6 +171,17 @@ export const SerpApiV2Plugin: V2Plugin = {
           return { content: await executeSearch(input as SearchArguments, toolContext.signal) }
         },
       })
+    })
+
+    await context.websearch.transform((editor) => {
+      editor.add({
+        id: "serpapi",
+        name: "SerpApi",
+        async execute({ query }, toolContext) {
+          return executeWebSearch(query, toolContext.signal)
+        },
+      })
+      if (editor.default.get() === undefined) editor.default.set("serpapi")
     })
 
     await context.skill.transform((editor) => {

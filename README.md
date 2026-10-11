@@ -60,14 +60,16 @@ Ask in natural language and the agent picks the tool and engine on its own:
 
 ## How it works
 
-This is an **OpenCode MCP integration with a native HTTPS fallback**. The plugin:
+This is an **OpenCode MCP integration with native web-search and HTTPS routes**. The plugin:
 
 1. Registers the hosted SerpApi MCP server at `https://mcp.serpapi.com/mcp`.
 2. Reads `SERPAPI_API_KEY` from the OpenCode process and resolves it into the
   MCP `Authorization: Bearer ...` header.
-3. Exposes a native `serpapi_search` tool that calls
+3. For OpenCode 2, registers SerpApi as a native web-search provider using
+  Google Light and selects it only when no provider default is configured.
+4. Exposes a native `serpapi_search` tool that calls
   `https://serpapi.com/search.json` with the runtime's built-in `fetch`.
-4. Registers the bundled `serpapi-web-search` skill for engine selection,
+5. Registers the bundled `serpapi-web-search` skill for engine selection,
   routing, credential safety, and response guidance.
 
 The MCP server is the preferred route. When its tools are unavailable or the
@@ -77,6 +79,7 @@ An existing user-defined `mcp.serpapi` configuration is preserved.
 ## Features
 
 - **MCP-native search** — OpenCode receives the `search` tool from the `serpapi` MCP server.
+- **OpenCode 2 web search provider** — SerpApi results are available through OpenCode's native web-search API.
 - **All SerpApi engines** — the MCP server supports Google, Bing, Amazon, Walmart, eBay, YouTube, Google Maps, Google Scholar, and other engines.
 - **MCP header authentication** — the key is read from `SERPAPI_API_KEY` and sent in the MCP `Authorization` header, not embedded in the MCP URL or source code.
 - **Structured results** — the MCP server supports JSON, compact responses, Markdown output, and engine-specific parameter validation.

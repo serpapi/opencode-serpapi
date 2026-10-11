@@ -86,10 +86,19 @@ describe("V1 configuration", () => {
 })
 
 describe("OpenCode V2 adapter", () => {
-  it("registers the native search tool, remote MCP server, and bundled skill", async () => {
+  it("registers the native search tool and provider, remote MCP server, and bundled skill", async () => {
     const tools: Array<{ name: string; execute: (input: unknown, context: { signal: AbortSignal }) => Promise<{ content: string }> }> = []
     const servers: Record<string, unknown> = {}
     const skills: Array<{ id: string; name: string; description?: string; content: string }> = []
+    const providers: Array<{
+      id: string
+      name: string
+      execute: (
+        input: { query: string },
+        context: { signal: AbortSignal },
+      ) => Promise<readonly { url: string; title?: string; content?: string; time: { published?: number } }[]>
+    }> = []
+    let defaultProvider: string | false | undefined
     const context = {
       mcp: {
         transform: async (transform: (editor: { get: (name: string) => unknown; set: (name: string, config: unknown) => void }) => void) =>
@@ -102,6 +111,19 @@ describe("OpenCode V2 adapter", () => {
         transform: async (transform: (editor: { add: (definition: typeof tools[number]) => void }) => void) =>
           transform({ add: (definition) => tools.push(definition) }),
       },
+      websearch: {
+        transform: async (transform: (editor: {
+          add: (definition: typeof providers[number]) => void
+          default: { get: () => string | false | undefined; set: (selection: string | false) => void }
+        }) => void) =>
+          transform({
+            add: (definition) => providers.push(definition),
+            default: {
+              get: () => defaultProvider,
+              set: (selection) => { defaultProvider = selection },
+            },
+          }),
+      },
       skill: {
         transform: async (transform: (editor: { add: (skill: typeof skills[number]) => void }) => void) =>
           transform({ add: (skill) => skills.push(skill) }),
@@ -109,12 +131,18 @@ describe("OpenCode V2 adapter", () => {
     } as unknown as V2Context
 
     process.env.SERPAPI_API_KEY = "v2-test-key"
-    const fetchMock = vi.fn(async () => new Response('{"ok":true}', { status: 200 }))
+    const searchResponse = JSON.stringify({
+      organic_results: [{ title: "Headphones", link: "https://example.com/headphones", snippet: "Top result" }],
+    })
+    const fetchMock = vi.fn(async () => new Response(searchResponse, { status: 200 }))
     vi.stubGlobal("fetch", fetchMock)
 
     await SerpApiV2Plugin.setup(context)
 
     expect(tools.map(({ name }) => name)).toContain("serpapi_search")
+    expect(providers.map(({ id }) => id)).toContain("serpapi")
+    expect(providers[0].name).toBe("SerpApi")
+    expect(defaultProvider).toBe("serpapi")
     expect(servers.serpapi).toMatchObject({
       type: "remote",
       url: "https://mcp.serpapi.com/mcp",
@@ -127,7 +155,14 @@ describe("OpenCode V2 adapter", () => {
     expect(skills[0].content).toMatch(/^# SerpApi web search/)
     expect(skills[0].content).not.toContain("description: |")
     await expect(tools[0].execute({ engine: "amazon", q: "headphones" }, { signal: new AbortController().signal }))
-      .resolves.toEqual({ content: '{"ok":true}' })
-    expect(fetchMock).toHaveBeenCalledOnce()
+      .resolves.toEqual({ content: searchResponse })
+    await expect(providers[0].execute({ query: "headphones" }, { signal: new AbortController().signal }))
+      .resolves.toEqual([{
+        url: "https://example.com/headphones",
+        title: "Headphones",
+        content: "Top result",
+        time: {},
+      }])
+    expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 })
