@@ -25,10 +25,12 @@ availability depends on the OpenCode version and configuration.
   YouTube, Google Scholar, Google Maps, and other supported engines
 - Explicit multi-engine comparisons
 
-For a known URL, long-form webpage reading, JavaScript-rendered content, site
-mapping, recursive crawling, or content extraction, use a configured webpage
-extraction, browser, or crawling tool when available. Use SerpApi to discover
-relevant URLs before extraction when useful.
+For a known URL or long-form page reading, use `serpapi_rest_extract` on
+OpenCode 2 or `serpapi_extract` on OpenCode 1 (SerpApi Extract API). Use
+`mode: "map"` to list a site's URLs and `mode: "crawl"` only when the user
+wants several pages; crawl costs one credit per extracted page. Extract does not
+run JavaScript, so use a browser tool for JavaScript-rendered content. Use
+SerpApi search to discover relevant URLs before extraction when useful.
 
 ## Route selection
 

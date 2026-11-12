@@ -65,14 +65,16 @@ The plugin's integrations depend on the OpenCode version:
 - **OpenCode 2** registers the hosted SerpApi MCP server at
   `https://mcp.serpapi.com/mcp`, using `SERPAPI_API_KEY` as its bearer header
   when available. It also registers SerpApi as a native web-search provider
-  without changing OpenCode's provider selection, plus a direct HTTPS tool named
-  `serpapi_rest_search`. Existing user-defined MCP configuration is preserved.
-- **OpenCode 1** registers the direct HTTPS tool as `serpapi_search` and adds
-  the bundled skill path. It does not automatically register the hosted MCP
-  server or a native web-search provider.
+  without changing OpenCode's provider selection, plus direct HTTPS tools named
+  `serpapi_rest_search` and `serpapi_rest_extract`. Existing user-defined MCP
+  configuration is preserved.
+- **OpenCode 1** registers the direct HTTPS tools as `serpapi_search` and
+  `serpapi_extract` and adds the bundled skill path. It does not automatically
+  register the hosted MCP server or a native web-search provider.
 
-Both direct tools call `https://serpapi.com/search.json` with the runtime's
-built-in `fetch` and read `SERPAPI_API_KEY` from the OpenCode process. The
+The search tools call `https://serpapi.com/search.json` and the extract tools
+call the [Extract API](https://serpapi.com/extract-api) with the runtime's
+built-in `fetch`, reading `SERPAPI_API_KEY` from the OpenCode process. The
 bundled `serpapi-web-search` skill provides engine selection, credential
 safety, and response guidance.
 
@@ -86,6 +88,7 @@ safety, and response guidance.
 - **Local search guidance** — the bundled skill helps the model choose engines and use engine-specific parameters without owning credentials or making API requests.
 - **Direct HTTPS search** — `serpapi_search` on OpenCode 1 and `serpapi_rest_search` on OpenCode 2 use built-in `fetch`, with no CLI, shell, or cURL dependency.
 - **Engine-aware queries** — the native tool maps its generic `q` argument to engine-specific fields such as Amazon's `k`, Walmart's `query`, eBay's `_nkw`, and YouTube's `search_query`.
+- **Page extraction** — `serpapi_extract` (OpenCode 1) and `serpapi_rest_extract` (OpenCode 2) read a URL as Markdown, map a site's URLs, or crawl a few same-site pages (default cap of 5 pages, one credit each).
 
 ## Supported Engines
 
