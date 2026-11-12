@@ -70,6 +70,7 @@ export const ENGINE_QUERY_PARAM: Record<string, string> = {
 
   // Misc
   google_autocomplete: "q",
+  extract: "url",
 }
 
 export const DEFAULT_ENGINE = "google_light"

@@ -64,6 +64,61 @@ describe("serpapi_search", () => {
   })
 })
 
+describe("serpapi_extract", () => {
+  it("requests Markdown for a single page by default", async () => {
+    process.env.SERPAPI_API_KEY = "trusted-key"
+    const fetchMock = vi.fn(async (_input: string | URL | Request) => new Response("# Example Domain", { status: 200 }))
+    vi.stubGlobal("fetch", fetchMock)
+    const extract = (await pluginHooks()).tool?.serpapi_extract
+    if (!extract) throw new Error("serpapi_extract was not registered")
+
+    await expect(extract.execute({ url: "https://example.com/" }, {} as never)).resolves.toBe("# Example Domain")
+    const url = new URL(String(fetchMock.mock.calls[0][0]))
+    expect(url.origin + url.pathname).toBe("https://serpapi.com/search.md")
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      engine: "extract",
+      url: "https://example.com/",
+      mode: "scrape",
+      api_key: "trusted-key",
+    })
+  })
+
+  it("caps crawl pages by default and passes crawl options", async () => {
+    process.env.SERPAPI_API_KEY = "trusted-key"
+    const fetchMock = vi.fn(async (_input: string | URL | Request) => new Response("{}", { status: 200 }))
+    vi.stubGlobal("fetch", fetchMock)
+    const extract = (await pluginHooks()).tool?.serpapi_extract
+    if (!extract) throw new Error("serpapi_extract was not registered")
+
+    await extract.execute(
+      { url: "https://books.toscrape.com/", mode: "crawl", output: "json", max_depth: 1, include_subdomains: true },
+      {} as never,
+    )
+    const url = new URL(String(fetchMock.mock.calls[0][0]))
+    expect(url.pathname).toBe("/search.json")
+    expect(Object.fromEntries(url.searchParams)).toMatchObject({
+      engine: "extract",
+      mode: "crawl",
+      max_pages: "5",
+      max_depth: "1",
+      include_subdomains: "true",
+    })
+  })
+
+  it("rejects non-http URLs without a request", async () => {
+    process.env.SERPAPI_API_KEY = "trusted-key"
+    const fetchMock = vi.fn()
+    vi.stubGlobal("fetch", fetchMock)
+    const extract = (await pluginHooks()).tool?.serpapi_extract
+    if (!extract) throw new Error("serpapi_extract was not registered")
+
+    await expect(extract.execute({ url: "file:///etc/passwd" }, {} as never)).resolves.toBe(
+      "SerpApi extract failed: url must be an absolute http or https URL.",
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
 describe("dual-version entrypoint", () => {
   it("keeps the V1 server implementation on the default export", async () => {
     expect(typeof DefaultPlugin.server).toBe("function")
@@ -140,6 +195,7 @@ describe("OpenCode V2 adapter", () => {
     await SerpApiV2Plugin.setup(context)
 
     expect(tools.map(({ name }) => name)).toContain("serpapi_rest_search")
+    expect(tools.map(({ name }) => name)).toContain("serpapi_rest_extract")
     expect(tools.map(({ name }) => name)).not.toContain("serpapi_search")
     expect(providers.map(({ id }) => id)).toContain("serpapi")
     expect(providers[0].name).toBe("SerpApi")
