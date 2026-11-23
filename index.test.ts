@@ -86,6 +86,26 @@ describe("V1 configuration", () => {
 })
 
 describe("OpenCode V2 adapter", () => {
+  it.each([
+    ["an existing provider", "exa", "test-key"],
+    ["disabled web search", false, "test-key"],
+    ["missing credentials", undefined, undefined],
+  ] as const)("does not set a default with %s", async (_label, selection, key) => {
+    if (key) process.env.SERPAPI_API_KEY = key
+    else delete process.env.SERPAPI_API_KEY
+
+    const editor = { add: vi.fn(), default: { get: () => selection, set: vi.fn() } }
+    await SerpApiV2Plugin.setup({
+      mcp: { transform: vi.fn() },
+      tool: { transform: vi.fn() },
+      skill: { transform: vi.fn() },
+      websearch: { transform: async (transform: (value: typeof editor) => void) => transform(editor) },
+    } as unknown as V2Context)
+
+    expect(editor.add).toHaveBeenCalledOnce()
+    expect(editor.default.set).not.toHaveBeenCalled()
+  })
+
   it("registers the native search tool and provider, remote MCP server, and bundled skill", async () => {
     const tools: Array<{ name: string; execute: (input: unknown, context: { signal: AbortSignal }) => Promise<{ content: string }> }> = []
     const servers: Record<string, unknown> = {}
@@ -143,7 +163,7 @@ describe("OpenCode V2 adapter", () => {
     expect(tools.map(({ name }) => name)).not.toContain("serpapi_search")
     expect(providers.map(({ id }) => id)).toContain("serpapi")
     expect(providers[0].name).toBe("SerpApi")
-    expect(defaultProvider).toBeUndefined()
+    expect(defaultProvider).toBe("serpapi")
     expect(servers.serpapi).toMatchObject({
       type: "remote",
       url: "https://mcp.serpapi.com/mcp",
