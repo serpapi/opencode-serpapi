@@ -24,7 +24,8 @@ search arguments include:
 {"params":{"engine":"google_scholar","q":"retrieval augmented generation"}}
 ```
 
-Use compact or Markdown output when complete JSON is unnecessary. Use server-side
+The plugin defaults searches to Markdown. Set `params.output` to `json` for
+structured data; add `mode: "compact"` to omit JSON metadata. Use server-side
 field restriction for small result fields. Do not assume the tool name or schema
 when OpenCode has exposed a newer MCP version; inspect the live schema first.
 

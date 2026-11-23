@@ -30,13 +30,16 @@ describe("serpapi_search", () => {
     expect(result).toBe('{"ok":true}')
     expect(fetchMock).toHaveBeenCalledOnce()
     const url = new URL(String(fetchMock.mock.calls[0][0]))
-    expect(url.origin + url.pathname).toBe("https://serpapi.com/search.json")
+    expect(url.origin + url.pathname).toBe("https://serpapi.com/search")
     expect(Object.fromEntries(url.searchParams)).toEqual({
       engine: "amazon",
+      output: "md",
       page: "2",
       k: "headphones",
       api_key: "trusted-key",
     })
+    await search.execute({ q: "headphones", params: { output: "json" } }, {} as never)
+    expect(new URL(String(fetchMock.mock.calls[1][0])).searchParams.get("output")).toBe("json")
   })
 
   it("returns HTTP failures as tool output", async () => {
@@ -87,6 +90,7 @@ describe("V1 configuration", () => {
 
 describe("OpenCode V2 adapter", () => {
   it("registers the native search tool and provider, remote MCP server, and bundled skill", async () => {
+    const hook = vi.fn<(name: string, callback: (event: { tool: string; input: unknown }) => void) => void>()
     const tools: Array<{ name: string; execute: (input: unknown, context: { signal: AbortSignal }) => Promise<{ content: string }> }> = []
     const servers: Record<string, unknown> = {}
     const skills: Array<{ id: string; name: string; description?: string; content: string }> = []
@@ -108,6 +112,7 @@ describe("OpenCode V2 adapter", () => {
           }),
       },
       tool: {
+        hook,
         transform: async (transform: (editor: { add: (definition: typeof tools[number]) => void }) => void) =>
           transform({ add: (definition) => tools.push(definition) }),
       },
@@ -134,10 +139,25 @@ describe("OpenCode V2 adapter", () => {
     const searchResponse = JSON.stringify({
       organic_results: [{ title: "Headphones", link: "https://example.com/headphones", snippet: "Top result" }],
     })
-    const fetchMock = vi.fn(async () => new Response(searchResponse, { status: 200 }))
+    const fetchMock = vi.fn(async (_url: URL) => new Response(searchResponse, { status: 200 }))
     vi.stubGlobal("fetch", fetchMock)
 
     await SerpApiV2Plugin.setup(context)
+
+    const [hookName, beforeSearch] = hook.mock.calls[0]
+    expect(hookName).toBe("execute.before")
+    const mcpSearch = { tool: "serpapi_search", input: { params: { q: "headphones" }, mode: "compact" } }
+    beforeSearch(mcpSearch)
+    expect(mcpSearch.input).toEqual({ params: { q: "headphones", output: "md" }, mode: "compact" })
+    for (const event of [
+      { tool: "serpapi_search", input: { params: { output: "json" } } },
+      { tool: "serpapi_search", input: { params: '{"q":"headphones"}' } },
+      { tool: "another_search", input: { params: { q: "headphones" } } },
+    ]) {
+      const input = event.input
+      beforeSearch(event)
+      expect(event.input).toBe(input)
+    }
 
     expect(tools.map(({ name }) => name)).toContain("serpapi_rest_search")
     expect(tools.map(({ name }) => name)).not.toContain("serpapi_search")
@@ -168,6 +188,7 @@ describe("OpenCode V2 adapter", () => {
         time: {},
       }])
     expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock.mock.calls.map(([url]) => url.searchParams.get("output"))).toEqual(["md", "json"])
 
     fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch https://serpapi.com/search.json?api_key=v2-test-key"))
     await expect(providers[0].execute({ query: "headphones" }, { signal: new AbortController().signal }))

@@ -69,7 +69,7 @@ authenticate with `serpapi login` or the CLI's supported `SERPAPI_KEY` variable.
 - Prefer `google_light` for ordinary web searches; use `google` for advanced SERP features.
 - Use the `serpapi` engine resource and schema before guessing unusual parameters.
 - Include location, country, and language when they materially affect results.
-- Use field restriction, compact output, or Markdown when complete JSON is unnecessary.
+- Prefer Markdown for model-facing results. Use `params.output: "json"` when exact structured fields are needed.
 - Confirm before several uncached searches when the user has not clearly requested a comparison.
 - Respect account credit and concurrency limits.
 - Use `page` for page-based engines and `start` for Google-family offsets.
