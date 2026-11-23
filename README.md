@@ -64,9 +64,10 @@ The plugin's integrations depend on the OpenCode version:
 
 - **OpenCode 2** registers the hosted SerpApi MCP server at
   `https://mcp.serpapi.com/mcp`, using `SERPAPI_API_KEY` as its bearer header
-  when available. It also registers SerpApi as a native web-search provider
-  without changing OpenCode's provider selection, plus a direct HTTPS tool named
-  `serpapi_rest_search`. Existing user-defined MCP configuration is preserved.
+  when available. It also registers SerpApi as a native web-search provider and
+  uses it by default when `SERPAPI_API_KEY` is set and no provider is selected.
+  Existing provider selections, disabled web search, and user-defined MCP
+  configuration are preserved. The direct HTTPS tool is `serpapi_rest_search`.
 - **OpenCode 1** registers the direct HTTPS tool as `serpapi_search` and adds
   the bundled skill path. It does not automatically register the hosted MCP
   server or a native web-search provider.
