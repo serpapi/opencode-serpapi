@@ -4,15 +4,17 @@ The direct REST tool calls the SerpApi endpoint with the runtime's built-in
 `fetch`; it does not require a shell or cURL. Its name is `serpapi_search` on
 OpenCode 1 and `serpapi_rest_search` on OpenCode 2. The REST endpoint uses
 `api_key` authentication in the query string, unlike the OpenCode 2 MCP
-endpoint's bearer header.
+endpoint's bearer header. The tool defaults to Markdown; set `params.output`
+to `json` for structured data.
 
 For manual troubleshooting outside the plugin:
 
 ```bash
 curl --fail-with-body --silent --show-error \
-  --get "https://serpapi.com/search.json" \
+  --get "https://serpapi.com/search" \
   --data-urlencode "engine=google_light" \
   --data-urlencode "q=coffee" \
+  --data-urlencode "output=md" \
   --data-urlencode "api_key=${SERPAPI_API_KEY}"
 ```
 

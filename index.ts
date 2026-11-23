@@ -46,6 +46,7 @@ async function executeSearch(args: SearchArguments, signal: AbortSignal): Promis
   const queryParam = queryParamFor(engine)
   const requestParams: Record<string, string> = {
     engine,
+    output: "md",
     ...(args.params ? Object.fromEntries(Object.entries(args.params).map(([key, value]) => [key, String(value)])) : {}),
   }
   if (args.q && !requestParams[queryParam]) requestParams[queryParam] = args.q
@@ -64,7 +65,7 @@ async function searchWithRestApi(
   apiKey: string,
   signal: AbortSignal,
 ): Promise<string> {
-  const url = new URL("https://serpapi.com/search.json")
+  const url = new URL("https://serpapi.com/search")
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value)
   url.searchParams.set("api_key", apiKey)
 
@@ -79,7 +80,7 @@ async function executeWebSearch(query: string, signal: AbortSignal) {
   if (!apiKey) throw new Error("SERPAPI_API_KEY is not available to the OpenCode process.")
 
   try {
-    const output = await searchWithRestApi({ engine: "google_light", q: query }, apiKey, signal)
+    const output = await searchWithRestApi({ engine: "google_light", q: query, output: "json" }, apiKey, signal)
     const response: unknown = JSON.parse(output)
     if (typeof response !== "object" || response === null || !("organic_results" in response)) return []
 
@@ -116,7 +117,7 @@ export const SerpApiPlugin: Plugin = async () => {
           params: tool.schema
             .record(tool.schema.string(), tool.schema.union([tool.schema.string(), tool.schema.number(), tool.schema.boolean()]))
             .optional()
-            .describe("Additional engine-specific SerpApi parameters."),
+            .describe("Additional engine-specific SerpApi parameters. Set output to json for structured data; defaults to md."),
         },
         async execute(args, context) {
           return executeSearch(args, context.abort)
@@ -167,7 +168,7 @@ export const SerpApiV2Plugin: V2Plugin = {
               additionalProperties: {
                 anyOf: [{ type: "string" }, { type: "number" }, { type: "boolean" }],
               },
-              description: "Additional engine-specific SerpApi parameters.",
+              description: "Additional engine-specific SerpApi parameters. Set output to json for structured data; defaults to md.",
             },
           },
           additionalProperties: false,
@@ -176,6 +177,15 @@ export const SerpApiV2Plugin: V2Plugin = {
           return { content: await executeSearch(input as SearchArguments, toolContext.signal) }
         },
       })
+    })
+
+    await context.tool.hook("execute.before", (event) => {
+      if (event.tool !== "serpapi_search" && event.tool !== "serpapi.search") return
+      const { input } = event
+      if (!input || typeof input !== "object") return
+      const params = "params" in input ? input.params : undefined
+      if (params != null && (typeof params !== "object" || Array.isArray(params) || "output" in params)) return
+      event.input = { ...input, params: { ...params, output: "md" } }
     })
 
     await context.websearch.transform((editor) => {

@@ -71,10 +71,11 @@ The plugin's integrations depend on the OpenCode version:
   the bundled skill path. It does not automatically register the hosted MCP
   server or a native web-search provider.
 
-Both direct tools call `https://serpapi.com/search.json` with the runtime's
-built-in `fetch` and read `SERPAPI_API_KEY` from the OpenCode process. The
-bundled `serpapi-web-search` skill provides engine selection, credential
-safety, and response guidance.
+Both direct tools call `https://serpapi.com/search` with the runtime's built-in
+`fetch` and read `SERPAPI_API_KEY` from the OpenCode process. The direct tools
+and OpenCode 2's SerpApi MCP search default to Markdown; set `params.output`
+to `json` when structured fields are needed. The native web-search provider
+still reads JSON internally and returns only normalized search results.
 
 ## Features
 
